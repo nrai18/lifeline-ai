@@ -115,11 +115,11 @@ const App = {
     // Set up global keyboard shortcuts
     this.setupGlobalListeners();
 
-    // First-run: prompt for API key if missing
-    this.checkFirstRun();
-
     // Navigate to the current hash (or default)
     this.onRouteChange();
+
+    // First-run: prompt for API key if missing
+    this.checkFirstRun();
 
     // Update last-active stat
     Storage.updateStats({ lastActiveDate: new Date().toISOString() });
