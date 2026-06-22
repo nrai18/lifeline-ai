@@ -111,7 +111,7 @@ export async function renderDashboard() {
         <div class="dashboard-col-right">
           
           <!-- AI Priority Queue -->
-          <div class="card queue-card animate-fade-in">
+          <div class="card queue-card animate-fade-in" style="margin-bottom: 24px;">
             <div class="card-header">
               <h3 class="card-title">
                 <span class="material-symbols-rounded text-accent">checklist</span>
@@ -152,6 +152,19 @@ export async function renderDashboard() {
                   </div>
                 ` : ''}
               </div>
+            </div>
+          </div>
+
+          <!-- Schedule Collision Warnings & Negotiations -->
+          <div class="card collision-card animate-fade-in-up">
+            <div class="card-header" style="background: rgba(239, 68, 68, 0.1); border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+              <h3 class="card-title text-danger">
+                <span class="material-symbols-rounded">warning</span>
+                Collision &amp; Overload Alerts
+              </h3>
+            </div>
+            <div class="card-body" id="collision-warnings-container" style="min-height: 80px; padding: 16px;">
+              <p class="text-secondary text-xs">AI is scanning deadlines against workload allocation bounds...</p>
             </div>
           </div>
 
@@ -297,6 +310,39 @@ export function initDashboard() {
     });
   }
 
-  // Load briefing initially
+  // Hook Schedule Collisions Warnings
+  const loadCollisions = async () => {
+    const warningsContainer = $('#collision-warnings-container');
+    if (!warningsContainer) return;
+
+    try {
+      const tasks = Storage.getTasks();
+      const analysis = await analyzePriorities(tasks);
+
+      if (analysis && analysis.conflicts && analysis.conflicts.length > 0) {
+        warningsContainer.innerHTML = `
+          <ul style="padding-left: 20px; display:flex; flex-direction:column; gap:8px;">
+            ${analysis.conflicts.map(conflict => `
+              <li class="text-xs text-secondary" style="list-style:disc;">
+                <strong class="text-danger">Collision:</strong> ${conflict}
+              </li>
+            `).join('')}
+          </ul>
+        `;
+      } else {
+        warningsContainer.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="material-symbols-rounded text-success" style="font-size:1.2rem;">check_circle</span>
+            <span class="text-xs text-secondary">No current calendar conflicts or scheduling bottlenecks detected.</span>
+          </div>
+        `;
+      }
+    } catch (e) {
+      warningsContainer.innerHTML = `<p class="text-muted text-xs">Offline locally or failed to fetch prioritizer metrics.</p>`;
+    }
+  };
+
+  // Load briefing & alerts initially
   loadBriefing();
+  loadCollisions();
 }
