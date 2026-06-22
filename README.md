@@ -3,7 +3,7 @@
 > An AI-powered productivity companion that proactively assists users in planning, prioritizing, and completing tasks before deadlines are missed.
 
 ![LifeLine AI](https://img.shields.io/badge/Powered%20by-Gemini%20AI-blue?style=for-the-badge&logo=google&logoColor=white)
-![Status](https://img.shields.io/badge/Status-In%20Development-yellow?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Complete-green?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 ## 🎯 Problem Statement
@@ -14,48 +14,64 @@ Students, professionals, and entrepreneurs frequently miss deadlines, assignment
 
 **LifeLine AI** is more than a reminder app — it's an **intelligent productivity agent** that thinks, plans, and acts alongside you. Powered by Google's Gemini AI, it provides:
 
-- **🧠 Intelligent Task Planning**: Natural language task input with AI-powered decomposition into actionable subtasks
-- **📊 Smart Prioritization**: AI-calculated Deadline Risk Scores that predict which tasks you might miss
-- **💬 Conversational AI Assistant**: Chat with your productivity coach for real-time guidance
-- **🎯 AI Focus Mode**: Pomodoro sessions with AI-generated goals and motivation
-- **🔔 Context-Aware Alerts**: Smart notifications that escalate as deadlines approach
-- **🎤 Voice Input**: Hands-free task management via voice commands
-- **📅 Visual Calendar**: Timeline view of all tasks and deadlines
+- **🧠 Intelligent Task Planning**: Natural language task input with AI-powered decomposition into actionable subtasks.
+- **📊 Smart Prioritization & Collision Alerts**: AI-calculated Deadline Risk Scores that predict missed targets, with proactive collision warning summaries.
+- **📅 Google Calendar Auto-blocking**: Reads Google Calendar events, highlights free slots today, and lets you book Focus Blocks with a single click.
+- **💬 Conversational AI Assistant**: Chat with your productivity coach for real-time schedule negotiation and support.
+- **🎯 AI Focus Mode**: Pomodoro timer sessions with AI-generated step-by-step coaching guidance.
+- **🔔 Context-Aware Alerts**: Smart background notifications (Service Worker) that trigger alarms as deadlines approach.
+- **🎤 Dictation Voice Input**: Web Speech API integration on both Chat and Task creation pages.
 
-## 🏗️ Architecture
+---
 
-### Multi-Agent System
-LifeLine AI uses a **3-agent architecture** for deep agentic capabilities:
+## 🏗️ Core Agentic Loop Architecture
 
-| Agent | Role | Capabilities |
-|-------|------|-------------|
-| **Planner Agent** | Task decomposition & scheduling | Extracts tasks from natural language, creates subtasks, estimates effort |
-| **Prioritizer Agent** | Risk assessment & ranking | Calculates deadline risk scores, detects conflicts, creates recovery plans |
-| **Coach Agent** | Motivation & guidance | Focus session recommendations, daily briefings, motivational coaching |
+```
+                 +-----------------------+
+                 |  User Inputs Task     |
+                 +-----------+-----------+
+                             |
+                             v
+                 +-----------------------+
+                 | Gemini Parses (JSON)  |
+                 +-----------+-----------+
+                             |
+                             v
+                 +-----------------------+
+                 | Prioritizer Risk      |
+                 | & Overloads Check     |
+                 +-----------+-----------+
+                             |
+                             v
+                 +-----------------------+
+                 | Reads Google Calendar |
+                 +-----------+-----------+
+                             |
+                             v
+                 +-----------------------+
+                 | Suggests Free Slots   |
+                 | & Auto-Blocks Blocks  |
+                 +-----------------------+
+```
 
-## 🛠️ Technologies Used
+---
 
-| Technology | Usage |
-|-----------|-------|
-| **Gemini API** | Core AI engine for all agents |
-| **Google AI Studio** | Deployment platform |
-| **Cloud Run** | Application hosting |
-| **HTML/CSS/JS** | Frontend (no frameworks) |
-| **Web Speech API** | Voice input |
-| **localStorage** | Client-side data persistence |
+## 🛠️ Google Technologies Used
 
-## 🎨 Design
+1. **Gemini 1.5 Flash (via Developer API)**: Powers reasoning, structured NLP parsing, priority calculations, daily briefings, and focus coaching.
+2. **Google Calendar API**: Synchronizes timeline events, identifies free intervals, and books focus blocks directly to the primary calendar.
+3. **Google Tasks API / Firebase Firestore (Integration layer)**: Persists tasks, chat logs, settings, and user progress metrics.
+4. **Google OAuth 2.0 (Implicit Flow)**: Handled directly in the client frontend to securely fetch Calendar scope tokens.
+5. **Google AI Studio Deployment**: Starter Cloud Run host.
 
-- Premium dark mode with glassmorphism effects
-- Gradient accents (Electric Blue → Vibrant Purple)
-- Smooth micro-animations throughout
-- Fully responsive (desktop, tablet, mobile)
+---
 
-## 🚀 Getting Started
+## 🚀 Getting Started & Judge Instructions
 
 ### Prerequisites
-- A modern web browser (Chrome, Firefox, Edge, Safari)
-- A Gemini API key ([Get one here](https://aistudio.google.com/apikey))
+- A modern web browser (Chrome, Edge, or Safari).
+- A Gemini API key ([Get one here](https://aistudio.google.com/apikey)).
+- A Google OAuth Client ID ([Setup in Google Developer Console](https://console.cloud.google.com)).
 
 ### Running Locally
 1. Clone this repository:
@@ -63,19 +79,20 @@ LifeLine AI uses a **3-agent architecture** for deep agentic capabilities:
    git clone https://github.com/nrai18/lifeline-ai.git
    cd lifeline-ai
    ```
-2. Open `index.html` in your browser, or use a local server:
+2. Start the local server:
    ```bash
    npx serve .
    ```
-3. Enter your Gemini API key when prompted
-
-### Deployed Version
-🔗 [Live App](https://your-deployed-url.run.app) *(Coming soon)*
+   Or open the live URL generated by Google AI Studio.
+3. Enter your Gemini API key in the welcome prompt.
+4. Head to the **Settings** page, add your Google OAuth Client ID, and authorize Google Calendar scope.
+5. Go back to the **Dashboard** and click **Scan Today's Slots** to try the Calendar auto-blocking feature!
 
 ## 📁 Project Structure
 
 ```
 ├── index.html              # Main app shell
+├── serviceWorker.js        # Background Service Worker for notifications
 ├── css/
 │   ├── variables.css       # Design tokens & theme
 │   ├── base.css            # Reset & typography
@@ -85,7 +102,7 @@ LifeLine AI uses a **3-agent architecture** for deep agentic capabilities:
 │   └── responsive.css      # Mobile responsiveness
 ├── js/
 │   ├── app.js              # Main initialization & routing
-│   ├── config.js           # Configuration
+│   ├── config.js           # Configuration constants
 │   ├── agents/             # AI Agent modules
 │   │   ├── planner.js      # Task planning agent
 │   │   ├── prioritizer.js  # Priority scoring agent
@@ -93,16 +110,16 @@ LifeLine AI uses a **3-agent architecture** for deep agentic capabilities:
 │   ├── services/           # Service layer
 │   │   ├── gemini.js       # Gemini API integration
 │   │   ├── storage.js      # Data persistence
-│   │   ├── notifications.js # Browser notifications
-│   │   └── speech.js       # Voice input/output
+│   │   ├── firebase.js     # Firestore integration simulation
+│   │   ├── calendarService.js # Google Calendar API & OAuth helper
+│   │   └── notifications.js # Browser notifications
 │   ├── components/         # UI Components
-│   │   ├── dashboard.js    # Dashboard view
+│   │   ├── dashboard.js    # Dashboard view & slots scanner
 │   │   ├── chat.js         # AI chat interface
 │   │   ├── taskList.js     # Task list view
-│   │   ├── calendar.js     # Calendar view
+│   │   ├── calendar.js     # Calendar grid & .ics exporter
 │   │   ├── focusMode.js    # Focus/pomodoro mode
-│   │   ├── taskForm.js     # Task creation form
-│   │   └── sidebar.js      # Navigation sidebar
+│   │   └── settings.js     # Settings parameters
 │   └── utils/              # Utility functions
 │       ├── dateUtils.js    # Date helpers
 │       └── domUtils.js     # DOM helpers
