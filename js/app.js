@@ -65,6 +65,8 @@ import { renderTaskForm, initTaskFormListeners } from './components/taskForm.js'
 import { renderFocus, initFocus } from './components/focusMode.js';
 import { renderCalendar, initCalendar } from './components/calendar.js';
 
+import { renderSettings, initSettings } from './components/settings.js';
+
 /**
  * Render Tasks layout containing form and list
  */
@@ -82,8 +84,6 @@ function renderTasks() {
     </div>
   `;
 }
-
-import { renderSettings, initSettings } from './components/settings.js';
 
 
 // ── App controller ─────────────────────────────────────────────────────
