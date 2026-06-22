@@ -57,106 +57,71 @@ const ROUTES = {
 /** Route to load when the hash is empty or unrecognised. */
 const DEFAULT_ROUTE = 'dashboard';
 
-// ── Placeholder view renderers ─────────────────────────────────────────
-// Each returns an HTML string. These will be replaced by dedicated
-// component modules (views/dashboard.js, views/chat.js, etc.).
+// ── View Renderers & Component Imports ─────────────────────────────────
+import { renderDashboard, initDashboard } from './components/dashboard.js';
+import { renderChat, initChat } from './components/chat.js';
+import { renderTaskList, initTaskListListeners } from './components/taskList.js';
+import { renderTaskForm, initTaskFormListeners } from './components/taskForm.js';
+import { renderCalendar, initCalendar } from './components/calendar.js';
 
-/** @returns {string} */
-function renderDashboard() {
-  const greeting = getGreeting();
-  const stats = Storage.getStats();
-  const tasks = Storage.getTasks();
-  const pending = tasks.filter((t) => t.status !== 'completed').length;
-
-  return `
-    <div class="view view--dashboard fade-in">
-      <div class="view__header">
-        <h1>${greeting} 👋</h1>
-        <p class="view__subtitle">${formatDate(new Date(), 'full')}</p>
-      </div>
-      <div class="view__body placeholder">
-        <div class="stats-summary">
-          <p>📋 <strong>${pending}</strong> pending task${pending !== 1 ? 's' : ''}</p>
-          <p>✅ <strong>${stats.tasksCompleted}</strong> completed overall</p>
-          <p>🎯 <strong>${stats.pomodorosDone}</strong> pomodoros finished</p>
-        </div>
-        <p class="placeholder__note">Full dashboard view coming soon…</p>
-      </div>
-    </div>`;
-}
-
-/** @returns {string} */
+/**
+ * Tasks View Renderer
+ */
 function renderTasks() {
-  const tasks = Storage.getTasks();
   return `
     <div class="view view--tasks fade-in">
-      <div class="view__header">
-        <h1>Tasks</h1>
-        <p class="view__subtitle">${tasks.length} task${tasks.length !== 1 ? 's' : ''} total</p>
+      <div class="view-grid-two-col" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; padding: 24px;">
+        <div class="tasks-left-pane">
+          ${renderTaskForm()}
+        </div>
+        <div class="tasks-right-pane">
+          ${renderTaskList()}
+        </div>
       </div>
-      <div class="view__body placeholder">
-        <p class="placeholder__note">Tasks view coming soon…</p>
-      </div>
-    </div>`;
+    </div>
+  `;
 }
 
-/** @returns {string} */
-function renderChat() {
-  return `
-    <div class="view view--chat fade-in">
-      <div class="view__header">
-        <h1>AI Chat</h1>
-        <p class="view__subtitle">Powered by ${CONFIG.GEMINI_MODEL}</p>
-      </div>
-      <div class="view__body placeholder">
-        <p class="placeholder__note">Chat view coming soon…</p>
-      </div>
-    </div>`;
-}
-
-/** @returns {string} */
-function renderCalendar() {
-  return `
-    <div class="view view--calendar fade-in">
-      <div class="view__header">
-        <h1>Calendar</h1>
-        <p class="view__subtitle">${formatDate(new Date(), 'long')}</p>
-      </div>
-      <div class="view__body placeholder">
-        <p class="placeholder__note">Calendar view coming soon…</p>
-      </div>
-    </div>`;
-}
-
-/** @returns {string} */
+/**
+ * Focus View Renderer
+ */
 function renderFocus() {
   return `
     <div class="view view--focus fade-in">
       <div class="view__header">
         <h1>Focus Mode</h1>
-        <p class="view__subtitle">Pomodoro timer &amp; deep work</p>
+        <p class="view__subtitle">Deep work blocks & Pomodoro coaching</p>
       </div>
       <div class="view__body placeholder">
-        <p class="placeholder__note">Focus mode coming soon…</p>
+        <p class="placeholder__note">Focus mode timer and coach integrations are coming next...</p>
       </div>
     </div>`;
 }
 
-/** @returns {string} */
+/**
+ * Settings View Renderer
+ */
 function renderSettings() {
   const settings = Storage.getSettings();
   const hasKey = Boolean(settings.geminiApiKey);
   return `
     <div class="view view--settings fade-in">
-      <div class="view__header">
+      <div class="view__header" style="padding: 24px;">
         <h1>Settings</h1>
       </div>
-      <div class="view__body placeholder">
-        <p>API key: ${hasKey ? '✅ Configured' : '❌ Not set'}</p>
-        <p class="placeholder__note">Settings view coming soon…</p>
+      <div style="padding: 24px;">
+        <div class="card">
+          <div class="card-body">
+            <p style="margin-bottom: 12px;">Gemini API Configuration: ${hasKey ? '<strong>✅ Configured</strong>' : '<strong>❌ Not configured</strong>'}</p>
+            <button class="btn btn-secondary" onclick="localStorage.removeItem('lifeline_settings'); window.location.reload();">
+              Configure New Key
+            </button>
+          </div>
+        </div>
       </div>
     </div>`;
 }
+
 
 // ── App controller ─────────────────────────────────────────────────────
 
@@ -250,6 +215,20 @@ const App = {
     try {
       const html = await route.render();
       container.innerHTML = html;
+
+      // Initialize view-specific behavior
+      if (viewName === 'dashboard') {
+        initDashboard();
+      } else if (viewName === 'chat') {
+        initChat();
+      } else if (viewName === 'tasks') {
+        initTaskFormListeners(() => {
+          initTaskListListeners(); // Reload list on update
+        });
+        initTaskListListeners();
+      } else if (viewName === 'calendar') {
+        initCalendar();
+      }
     } catch (err) {
       console.error(`[App] Failed to render "${viewName}":`, err);
       container.innerHTML = `
