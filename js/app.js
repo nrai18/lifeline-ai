@@ -83,29 +83,7 @@ function renderTasks() {
   `;
 }
 
-/**
- * Settings View Renderer
- */
-function renderSettings() {
-  const settings = Storage.getSettings();
-  const hasKey = Boolean(settings.geminiApiKey);
-  return `
-    <div class="view view--settings fade-in">
-      <div class="view__header" style="padding: 24px;">
-        <h1>Settings</h1>
-      </div>
-      <div style="padding: 24px;">
-        <div class="card">
-          <div class="card-body">
-            <p style="margin-bottom: 12px;">Gemini API Configuration: ${hasKey ? '<strong>✅ Configured</strong>' : '<strong>❌ Not configured</strong>'}</p>
-            <button class="btn btn-secondary" onclick="localStorage.removeItem('lifeline_settings'); window.location.reload();">
-              Configure New Key
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>`;
-}
+import { renderSettings, initSettings } from './components/settings.js';
 
 
 // ── App controller ─────────────────────────────────────────────────────
@@ -213,6 +191,8 @@ const App = {
         initTaskListListeners();
       } else if (viewName === 'calendar') {
         initCalendar();
+      } else if (viewName === 'settings') {
+        initSettings();
       }
     } catch (err) {
       console.error(`[App] Failed to render "${viewName}":`, err);
