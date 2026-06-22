@@ -89,6 +89,22 @@ export async function renderDashboard() {
             </div>
           </div>
 
+          <!-- Google Calendar Free Slot Finder -->
+          <div class="card calendar-slots-card animate-fade-in-up">
+            <div class="card-header">
+              <h3 class="card-title">
+                <span class="material-symbols-rounded text-accent">calendar_month</span>
+                Google Calendar Slots
+              </h3>
+            </div>
+            <div class="card-body" id="calendar-slots-body">
+              <p class="text-secondary text-xs">Verify free slots today and auto-block time.</p>
+              <div id="slots-loader-area" style="margin-top: 12px;">
+                <button class="btn btn-secondary btn-sm" id="dashboard-check-slots-btn">Scan Today's Slots</button>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- COLUMN 2: Priority Queue -->
@@ -201,6 +217,83 @@ export function initDashboard() {
       const taskId = startFocusBtn.dataset.id;
       // Redirect to Focus route and preselect task
       window.location.hash = `#focus?task=${taskId}`;
+    });
+  }
+
+  // Hook Scan Free Slots button
+  const checkSlotsBtn = $('#dashboard-check-slots-btn');
+  const slotsBody = $('#calendar-slots-body');
+
+  if (checkSlotsBtn && slotsBody) {
+    checkSlotsBtn.addEventListener('click', async () => {
+      const { isCalendarAuthenticated, findFreeFocusSlots, createFocusBlockEvent } = await import('../services/calendarService.js');
+      
+      if (!isCalendarAuthenticated()) {
+        slotsBody.innerHTML = `
+          <p class="text-warning text-xs" style="margin-bottom:12px;">Google Calendar is not authorized.</p>
+          <button class="btn btn-primary btn-sm" onclick="window.location.hash = '#settings'">Connect Google Calendar</button>
+        `;
+        return;
+      }
+
+      slotsBody.innerHTML = `<p class="text-secondary text-xs">Scanning Calendar Events...</p>`;
+
+      try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const freeSlots = await findFreeFocusSlots(todayStr, 30); // scan for 30m slots
+
+        if (freeSlots.length === 0) {
+          slotsBody.innerHTML = `<p class="text-secondary text-xs">No free slots remaining in today's work hours (9 AM - 6 PM).</p>`;
+          return;
+        }
+
+        const tasks = Storage.getTasks().filter(t => t.status !== 'completed');
+        const nextTaskTitle = tasks.length > 0 ? tasks[0].title : 'Productivity Session';
+
+        slotsBody.innerHTML = `
+          <p class="text-secondary text-xs" style="margin-bottom:12px;">Found ${freeSlots.length} slot(s) today. Click to auto-block focus time:</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            ${freeSlots.map((slot, index) => {
+              const startStr = slot.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const endStr = slot.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              return `
+                <button class="btn btn-secondary btn-sm block-slot-btn" style="text-align:left;"
+                        data-start="${slot.start.toISOString()}" data-end="${slot.end.toISOString()}">
+                  <span class="material-symbols-rounded" style="font-size:1rem; margin-right:6px;">event_available</span>
+                  Block ${startStr} - ${endStr}
+                </button>
+              `;
+            }).join('')}
+          </div>
+        `;
+
+        // Add booking listeners
+        slotsBody.querySelectorAll('.block-slot-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const blockBtn = e.currentTarget;
+            const startIso = blockBtn.dataset.start;
+            const endIso = blockBtn.dataset.end;
+            
+            blockBtn.disabled = true;
+            blockBtn.innerHTML = `<span class="material-symbols-rounded spinner">sync</span> Booking...`;
+
+            try {
+              await createFocusBlockEvent(nextTaskTitle, startIso, endIso);
+              showToast('Focus block reserved on Google Calendar! 📅', 'success');
+              blockBtn.innerHTML = `✅ Focus Blocked`;
+              blockBtn.classList.remove('btn-secondary');
+              blockBtn.classList.add('btn-success');
+            } catch (err) {
+              showToast(`Failed to book slot: ${err.message}`, 'danger');
+              blockBtn.disabled = false;
+              blockBtn.innerHTML = `Block Slot`;
+            }
+          });
+        });
+
+      } catch (err) {
+        slotsBody.innerHTML = `<p class="text-danger text-xs">Error scanning calendar: ${err.message}</p>`;
+      }
     });
   }
 
