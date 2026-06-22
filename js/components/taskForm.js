@@ -28,14 +28,18 @@ export function renderTaskForm() {
         <!-- Natural Language Input -->
         <div class="input-group">
           <label for="nlp-task-input">Quick AI Add</label>
-          <div class="input-with-action">
+          <div class="input-with-action" style="display: flex; gap: 8px;">
+            <button class="btn-icon" id="nlp-voice-btn" type="button" aria-label="Voice input dictation" style="flex-shrink:0;">
+              <span class="material-symbols-rounded">mic</span>
+            </button>
             <input 
               type="text" 
               id="nlp-task-input" 
               class="input" 
               placeholder="What do you need to do? AI will estimate time and split it into steps..."
+              style="flex-grow:1;"
             >
-            <button class="btn btn-primary" id="nlp-submit-btn">
+            <button class="btn btn-primary" id="nlp-submit-btn" type="button">
               <span class="material-symbols-rounded btn-icon-only">send</span>
             </button>
           </div>
@@ -206,5 +210,44 @@ export function initTaskFormListeners(onTaskAdded) {
         showToast(`Error adding task: ${err.message}`, 'danger');
       }
     });
+  }
+
+  // Hook Task Form Speech Recognition
+  const voiceBtn = $('#nlp-voice-btn');
+  if (voiceBtn && nlpInput) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        voiceBtn.classList.add('btn-voice--active');
+        showToast('Listening to task description...', 'info');
+      };
+
+      recognition.onerror = (err) => {
+        console.error('Task Form Speech error:', err);
+        voiceBtn.classList.remove('btn-voice--active');
+        showToast('Speech recognition failed.', 'danger');
+      };
+
+      recognition.onend = () => {
+        voiceBtn.classList.remove('btn-voice--active');
+      };
+
+      recognition.onresult = (event) => {
+        const text = event.results[0][0].transcript;
+        nlpInput.value = text;
+        nlpInput.focus();
+      };
+
+      voiceBtn.addEventListener('click', () => {
+        recognition.start();
+      });
+    } else {
+      voiceBtn.style.display = 'none'; // hide if browser doesn't support
+    }
   }
 }
