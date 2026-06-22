@@ -62,41 +62,8 @@ import { renderDashboard, initDashboard } from './components/dashboard.js';
 import { renderChat, initChat } from './components/chat.js';
 import { renderTaskList, initTaskListListeners } from './components/taskList.js';
 import { renderTaskForm, initTaskFormListeners } from './components/taskForm.js';
+import { renderFocus, initFocus } from './components/focusMode.js';
 import { renderCalendar, initCalendar } from './components/calendar.js';
-
-/**
- * Tasks View Renderer
- */
-function renderTasks() {
-  return `
-    <div class="view view--tasks fade-in">
-      <div class="view-grid-two-col" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; padding: 24px;">
-        <div class="tasks-left-pane">
-          ${renderTaskForm()}
-        </div>
-        <div class="tasks-right-pane">
-          ${renderTaskList()}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/**
- * Focus View Renderer
- */
-function renderFocus() {
-  return `
-    <div class="view view--focus fade-in">
-      <div class="view__header">
-        <h1>Focus Mode</h1>
-        <p class="view__subtitle">Deep work blocks & Pomodoro coaching</p>
-      </div>
-      <div class="view__body placeholder">
-        <p class="placeholder__note">Focus mode timer and coach integrations are coming next...</p>
-      </div>
-    </div>`;
-}
 
 /**
  * Settings View Renderer
