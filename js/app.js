@@ -66,6 +66,24 @@ import { renderFocus, initFocus } from './components/focusMode.js';
 import { renderCalendar, initCalendar } from './components/calendar.js';
 
 /**
+ * Render Tasks layout containing form and list
+ */
+function renderTasks() {
+  return `
+    <div class="view view--tasks fade-in">
+      <div class="view-grid-two-col" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; padding: 24px;">
+        <div class="tasks-left-pane">
+          ${renderTaskForm()}
+        </div>
+        <div class="tasks-right-pane">
+          ${renderTaskList()}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
  * Settings View Renderer
  */
 function renderSettings() {
