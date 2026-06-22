@@ -117,10 +117,34 @@ const App = {
     // First-run: prompt for API key if missing
     this.checkFirstRun();
 
+    // Initialize notification checks
+    this.setupNotificationMonitoring();
+
     // Update last-active stat
     Storage.updateStats({ lastActiveDate: new Date().toISOString() });
 
     console.log(`[${CONFIG.APP_NAME}] Ready.`);
+  },
+
+  /**
+   * Registers notification service worker & loops checks.
+   * @private
+   */
+  async setupNotificationMonitoring() {
+    try {
+      const { initNotifications, monitorDeadlinesAndAlert } = await import('./services/notifications.js');
+      await initNotifications();
+
+      // Run initial check
+      monitorDeadlinesAndAlert(Storage.getTasks());
+
+      // Periodically check every 60 seconds
+      setInterval(() => {
+        monitorDeadlinesAndAlert(Storage.getTasks());
+      }, 60000);
+    } catch (err) {
+      console.warn('[App] Notifications setup failed:', err);
+    }
   },
 
   // ── Routing ──────────────────────────────────────────────────────────
