@@ -102,6 +102,9 @@ const App = {
   init() {
     console.log(`[${CONFIG.APP_NAME}] v${CONFIG.APP_VERSION} — initialising…`);
 
+    // Setup simulated login auth check
+    this.setupAuthUI();
+
     // Wire up hash-based routing
     window.addEventListener('hashchange', () => this.onRouteChange());
 
@@ -124,6 +127,104 @@ const App = {
     Storage.updateStats({ lastActiveDate: new Date().toISOString() });
 
     console.log(`[${CONFIG.APP_NAME}] Ready.`);
+  },
+
+  /**
+   * Triggers and manages authentication modals (Email & OTP steps).
+   * @private
+   */
+  async setupAuthUI() {
+    const { isUserAuthenticated, sendEmailOTP, verifyOTP } = await import('./services/authService.js');
+    const authOverlay = $('#auth-overlay');
+    if (!authOverlay) return;
+
+    if (isUserAuthenticated()) {
+      authOverlay.style.display = 'none';
+      
+      // Update welcome text with email
+      const user = JSON.parse(localStorage.getItem('lifeline_auth_user') || '{}');
+      const userNameEl = $('#user-name');
+      if (userNameEl && user.email) {
+        userNameEl.textContent = user.email.split('@')[0];
+      }
+      return;
+    }
+
+    authOverlay.style.display = 'flex';
+
+    // Screen containers
+    const emailScreen = $('#auth-email-screen');
+    const otpScreen = $('#auth-otp-screen');
+    const statusText = $('#otp-status-text');
+
+    // Inputs & buttons
+    const emailInput = $('#auth-email-input');
+    const otpInput = $('#auth-otp-input');
+    const sendBtn = $('#auth-send-otp-btn');
+    const verifyBtn = $('#auth-verify-btn');
+    const backBtn = $('#auth-back-btn');
+
+    if (sendBtn) {
+      sendBtn.addEventListener('click', async () => {
+        const email = emailInput?.value?.trim();
+        if (!email || !email.includes('@')) {
+          showToast('Please enter a valid email address.', 'warning');
+          return;
+        }
+
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = `<span class="material-symbols-rounded spinner">sync</span> Sending...`;
+
+        try {
+          await sendEmailOTP(email);
+          showToast('OTP sent! Check your developer console logs.', 'success');
+          
+          if (emailScreen && otpScreen) {
+            emailScreen.style.display = 'none';
+            otpScreen.style.display = 'block';
+            if (statusText) statusText.innerHTML = `We sent a 6-digit code to <strong>${email}</strong>.<br><span class="text-accent" style="font-size:0.75rem;">Check your browser Console tab (F12) to retrieve it!</span>`;
+          }
+        } catch (err) {
+          showToast('Error sending OTP.', 'danger');
+        } finally {
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = `<span class="material-symbols-rounded">send</span> Send OTP Code`;
+        }
+      });
+    }
+
+    if (verifyBtn) {
+      verifyBtn.addEventListener('click', () => {
+        const code = otpInput?.value?.trim();
+        if (!code || code.length !== 6) {
+          showToast('Please enter the 6-digit code.', 'warning');
+          return;
+        }
+
+        const success = verifyOTP(code);
+        if (success) {
+          showToast('Successfully logged in! Welcome email logged. 🎉', 'success');
+          authOverlay.style.display = 'none';
+          
+          const user = JSON.parse(localStorage.getItem('lifeline_auth_user') || '{}');
+          const userNameEl = $('#user-name');
+          if (userNameEl && user.email) {
+            userNameEl.textContent = user.email.split('@')[0];
+          }
+        } else {
+          showToast('Invalid verification OTP code. Try again.', 'danger');
+        }
+      });
+    }
+
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        if (emailScreen && otpScreen) {
+          emailScreen.style.display = 'block';
+          otpScreen.style.display = 'none';
+        }
+      });
+    }
   },
 
   /**

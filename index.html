@@ -150,6 +150,72 @@
             </div>
         </div>
 
+        <!-- ========== AUTHENTICATION / LOGIN / OTP MODAL ========== -->
+        <div class="modal-overlay" id="auth-overlay" style="display: flex;">
+            <div class="modal auth-modal animate-scale-in" style="max-width: 400px; padding: 24px; border-radius: 16px; background: var(--bg-secondary); border: 1px solid var(--glass-border); text-align: center;">
+                
+                <!-- Email Sign In Screen -->
+                <div id="auth-email-screen">
+                    <div class="setup-icon" style="margin-bottom: 16px; color: var(--accent-primary);">
+                        <span class="material-symbols-rounded" style="font-size:3.5rem;">lock</span>
+                    </div>
+                    <h2 style="margin-bottom: 8px;">Access LifeLine AI</h2>
+                    <p class="text-secondary" style="margin-bottom: 24px; font-size: 0.85rem;">Sign in or create a new account to sync tasks across devices. A secure OTP will be sent to your email.</p>
+                    
+                    <div class="input-group" style="margin-bottom: 20px; text-align: left;">
+                        <label for="auth-email-input">Email Address</label>
+                        <div class="input-with-icon">
+                            <span class="material-symbols-rounded input-icon">mail</span>
+                            <input 
+                                type="email" 
+                                id="auth-email-input" 
+                                class="input" 
+                                placeholder="name@domain.com"
+                                required
+                            >
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-lg" id="auth-send-otp-btn" style="width: 100%;">
+                        <span class="material-symbols-rounded">send</span>
+                        Send OTP Code
+                    </button>
+                </div>
+
+                <!-- OTP Verification Screen -->
+                <div id="auth-otp-screen" style="display: none;">
+                    <div class="setup-icon" style="margin-bottom: 16px; color: var(--success);">
+                        <span class="material-symbols-rounded" style="font-size:3.5rem;">mark_email_read</span>
+                    </div>
+                    <h2 style="margin-bottom: 8px;">Verify OTP</h2>
+                    <p class="text-secondary" id="otp-status-text" style="margin-bottom: 24px; font-size: 0.85rem;">We sent a 6-digit verification code to your email.</p>
+                    
+                    <div class="input-group" style="margin-bottom: 20px; text-align: left;">
+                        <label for="auth-otp-input">Verification Code</label>
+                        <div class="input-with-icon">
+                            <span class="material-symbols-rounded input-icon">lock_open</span>
+                            <input 
+                                type="text" 
+                                id="auth-otp-input" 
+                                class="input" 
+                                placeholder="123456"
+                                maxlength="6"
+                                style="letter-spacing: 0.5rem; text-align: center; font-weight: bold;"
+                            >
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-lg" id="auth-verify-btn" style="width: 100%; margin-bottom: 12px;">
+                        <span class="material-symbols-rounded">verified_user</span>
+                        Verify &amp; Login
+                    </button>
+                    <button class="btn btn-ghost" id="auth-back-btn" style="width: 100%;">
+                        Back to Email
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- ========== API KEY SETUP MODAL ========== -->
         <div class="modal-overlay" id="setup-overlay" style="display: none;">
             <div class="modal setup-modal animate-scale-in">
